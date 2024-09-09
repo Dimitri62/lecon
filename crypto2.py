@@ -16,29 +16,51 @@
 
 # Question 1 a 4
 import base64
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
+import secrets
 
-# Fonction de déchiffrement
+# Fonction pour chiffrer un message avec AES256
+def chiffre_message(cle, iv, message):
+    padder = padding.PKCS7(128).padder()  # Ajoute du padding pour correspondre à la taille du bloc
+    message = message.encode()  # Encode le message en bytes
+    message_padded = padder.update(message) + padder.finalize()  # Applique le padding
+    cipher = Cipher(algorithms.AES(cle), modes.CBC(iv), backend=default_backend())  # Crée l'objet de chiffrement AES avec la clé et le IV
+    encryptor = cipher.encryptor()  # Initialise l'encryptor
+    ct = encryptor.update(message_padded) + encryptor.finalize()  # Chiffre le message
+    return ct
+
+# Fonction pour déchiffrer un message
 def dechiffre_message(cle, iv, ct):
-    cipher = Cipher(algorithms.AES(cle), modes.CBC(iv), backend=default_backend())
-    decryptor = cipher.decryptor()
-    message_padded = decryptor.update(ct) + decryptor.finalize()
-    unpadder = padding.PKCS7(128).unpadder()
-    message = unpadder.update(message_padded) + unpadder.finalize()
-    return message.decode()
+    cipher = Cipher(algorithms.AES(cle), modes.CBC(iv), backend=default_backend())  # Crée l'objet de déchiffrement AES avec la clé et le IV
+    decryptor = cipher.decryptor()  # Initialise le décryptor
+    message_padded = decryptor.update(ct) + decryptor.finalize()  # Déchiffre le message
+    unpadder = padding.PKCS7(128).unpadder()  # Enlève le padding
+    message = unpadder.update(message_padded) + unpadder.finalize()  # Applique le retrait du padding
+    return message.decode()  # Retourne le message original
 
-# Exemple de clé et d'IV (ils doivent être les mêmes que ceux utilisés pour chiffrer le message)
-cle = b'\x00' * 32  # Remplacez cette clé par celle que vous avez utilisée
-iv = b'\x00' * 16   # Remplacez cet IV par celui utilisé pour chiffrer
+# Génération d'une clé AES256 (32 bytes)
+keygen = secrets.token_bytes(32)  # 32 bytes = 256 bits
+# Génération d'un vecteur d'initialisation (IV) (16 bytes)
+ivgen = secrets.token_bytes(16)  # 16 bytes = 128 bits
+c = chiffre_message(keygen,ivgen,"test")
+dechiffre_message(keygen,ivgen,c)
 
-# Votre message chiffré
-message_chiffre = b'>s\x06\x14\x0c\xa7\xa6\x88\xd5[+i\xcc/J\xf7'
+clé = keygen
+iv = ivgen
 
-# Déchiffrement du message
-message_déchiffré = dechiffre_message(cle, iv, message_chiffre)
-print("Message déchiffré :", message_déchiffré)
+print(clé)
+print(iv)
+print(chiffre_message(clé,iv,"salut mec"))
+
+cclé = b'D\xb1\xe2\xf0\x8d\x86\xc8\xe6\xc1\x02ZO\xe0Y\x04\xe5XE)\xc4\x80&\x0c\xce\x85\xa1\x84\x0b\x82\xe2.\xa3'
+iiv = b'\x84|\xffy\x80ngn\xa8{\xce\x80\xac1\x99\xff'
+mess = b'\x80>_\x07\xe0r\xd5\xbc8\x1a\xdc\xfb\x15\xb0\x82\xbf'
+
+print(dechiffre_message(cclé,iiv,mess))
 
 # Question 5 : Comment pourrait-on s'assurer de l'intégrité du message et de l'authenticité du destinataire ? Signature numérique (authenticité) : Elle permet de vérifier 
 # que le message provient bien du destinataire prétendu et n'a pas été modifié en cours de route.
