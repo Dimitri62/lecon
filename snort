@@ -1,6 +1,6 @@
 ip link set dev ens18 promisc on
 
-ip link show ens18
+ip ink show ens18
 
 apt install ethtool
 ethtool -k ens18 |grep receive-offload
@@ -70,4 +70,5 @@ snort -c /etc/snort/snort.lua -R /etc/snort/rules/local.rules -i ens18 -A alert_
         alert_fast
         alert_full
 
-![Alt text](c:\Users\User\Downloads\pingsnort.png)
+
+        FIN.
