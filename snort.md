@@ -69,7 +69,6 @@ snort -c /etc/snort/snort.lua -R /etc/snort/rules/local.rules -i ens18 -A alert_
 
         alert_fast
         alert_full
-
-        ![Alt text](pingsnort.png)
-        
         FIN.
+
+![Alt text](pingsnort.png)
